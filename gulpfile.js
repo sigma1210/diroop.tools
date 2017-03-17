@@ -17,7 +17,7 @@
       rename      = require('gulp-rename'),
       jshint      = require('gulp-jshint'),
       ngHtml2Js   = require("gulp-ng-html2js"),
-      ngSchema2js = require("./gulp_extentions/gulp-ng-schema2€"),
+      ngSchema2js = require("./gulp_extentions/gulp-ng-schema2dr"),
       minifyHtml  = require('gulp-minify-html'),
       cssToJs     = require('gulp-css-to-js'),
       cleanCss    = require('gulp-clean-css'),
@@ -47,8 +47,8 @@
       /*partial packing */
       TEMPLATE_SRC_DIRECTORY          = ['./src/**/*.html'],
       TEMPLATE_MODULE_NAME            = 'diroop.tools.templateCache',
-      TEMPLATE_PREFIX                 = 'templateCache/',
-      TEMPLATE_MODULE_FILE_NAME       = 'templateCache.js',
+      TEMPLATE_PREFIX                 = 'drTemplateCache:/',
+      TEMPLATE_MODULE_FILE_NAME       = 'drTemplateCache.js',
       TEMP_DIRECTORY                  = './temp/templates',
       /*schema packing*/
       SCHEMA_SRC_DIRECTORY            = ['./src/schemaCache/**/*.schema.json'],
@@ -125,7 +125,7 @@
     function unitTests(cb){
       var Server = require('karma').Server;
       new Server({
-        configFile: __dirname + '/test/karma-unit.conf.js',
+        configFile: __dirname + '/tests/karma-unit.conf.js',
         singleRun: true
       }, function(){cb()}).start();
     }

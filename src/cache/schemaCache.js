@@ -153,7 +153,7 @@
     // private remmove ori from list
     function _removeUri(uri){
       //see http://underscorejs.org/#without
-      _uris =_.without(uris,uri);
+      _uris =_.without(_uris,uri);
     }
 
 

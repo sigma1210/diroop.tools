@@ -36,7 +36,7 @@
               resolves the promise if tv4 is load
               rejects if not;
     */
-    function _getTv4(){
+    function  _getValidator(){
       return $q(function(resolve,reject){
         if(tv){
           resolve(tv);

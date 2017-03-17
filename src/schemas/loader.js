@@ -47,7 +47,7 @@
      function _getSchemaSet(uri){
        return $q(function(resolve,reject){
              drTv4Service
-              .getTv4()
+              .getValidator()
               .then(function(_tv4){
                  var _newTv4      = _tv4.freshApi(),
                      _originalUri = uri,
@@ -99,7 +99,7 @@
      function _getCompleteSchemaSet(){
        return $q(function(resolve,reject){
          drTv4Service
-          .getTv4()
+          .getValidator()
           .then(function(_tv4){
             var _newTv4 = _tv4.freshApi();
             ng.forEach(drSchemaCache.getUris(),function(uri){

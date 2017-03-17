@@ -1,0 +1,19 @@
+{
+  "lib":[
+    "bower_components/angular/angular.min.js",
+    "bower_components/tv4/tv4.js",
+    "bower_components/moment/min/moment.min.js",
+    "bower_components/underscore/underscore-min.js"
+  ],
+  "source":[
+    "./src/*.js",
+    "./src/**/*.js",
+    "./temp/**/*.js"
+  ],
+  "testSupport":[
+    "bower_components/angular-mocks/angular-mocks.js"
+  ],
+  "tests":[
+    "./tests/unit/**/*.js"
+  ]
+}
