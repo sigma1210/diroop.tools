@@ -1,0 +1,29 @@
+{
+  "name": "diroop.tools",
+  "description": "diroop base tools",
+  "main": "gulp.js",
+  "authors": [
+    "reg"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "moment": "^2.17.1",
+    "angular": "^1.6.3",
+    "angular-mocks": "^1.6.3",
+    "json-refs": "^2.1.6",
+    "underscore": "^1.8.3",
+    "tv4": "^1.2.7",
+    "bootstrap": "^3.3.7",
+    "angular-ui-ace": "bower",
+    "angular-bootstrap": "^2.2.0",
+    "json-schema-faker": "^0.4.1"
+  }
+}
