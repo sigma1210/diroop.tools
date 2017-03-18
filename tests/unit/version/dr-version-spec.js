@@ -9,11 +9,11 @@ describe('unit test : <dr:version/> directive',function(){
 
   beforeEach(inject(function($rootScope,$compile){
       _rootScope = $rootScope;
-      _compile= $compile;
+      _compile=$compile;
   }));
 
   it('should compile without error',function(){
-      var $scope = _rootScope.$new(true);
+      var $scope= _rootScope.$new(true);
       var element = _compile(DIROOP_VERSION_TEMPLATE)($scope);
       $scope.$digest();
       expect(element.html()).toContain('diroop.tools :');

@@ -40,80 +40,41 @@ describe("Unit: drSchemaLoader",function(){
       expect(_drSchemaLoader).not.toBeNull();
   });
 
-
-  it('should be able to ask for a schema set for a know cached schema',function(){
-
+  it('should be able to ask for a schema set for a know cached schema',
+   function(done){
     function testPut(){
       _drSchemaCache.put(TEST_SCHEMA_KEY,TEST_FRAGMENT_1);
     }
     testPut();
-
-    var _set = null,
-        _error = null;
-
-    function testLoad(){
-      _drSchemaLoader
-        .getSchemaSet(TEST_SCHEMA_KEY)
-        .then(function(_schemaSet){
-          return _schemaSet;
-        })
-        .catch(function(error){
-          _error = error;
-          return null;
-        });
+    function _testSchema(schema){
+      expect(schema).toBeUndefined();
     }
-    function excuteTestLoad(){
-      _set = testLoad();
+    function _testFail(error){
+      expect(error).not.toBeUndefined();
     }
-    expect(excuteTestLoad).not.toThrow();
-    expect(_set).not.toBeNull();
-
-  });
-
-
-  it('should be able to ask for a expand a pre loaded schema set for a pre cached cached schema==>' +PRELOAD_SCHEMA_KEY ,
-    function(){
-      var _set = null,
-          _error = null;
-      function testLoad(){
-        _drSchemaLoader
-          .getSchemaSet(PRELOAD_SCHEMA_KEY)
-          .then(function(_schemaSet){
-            return _schemaSet;
-          })
-          .catch(function(error){
-            _error = error;
-            return null;
-          });
-      }
-      function excuteTestLoad(){
-        _set = testLoad();
-      }
-      expect(excuteTestLoad).not.toThrow();
-      expect(_set).not.toBeNull();
-      expect(_error).toBeNull();
-  });
-
-  it('should be able to expand a pre cached cached schema -- with pre loaded cached schema by $ref  ==>' +PRELOAD_SCHEMA_KEY ,
-    function(done){
-    var _error= null,
-        _schema = null;
-    _testSchema =function(schema){
-      _schema= schema;
-      _error = null;
-      return schema;
-    },
-    _testFail = function(error){
-        _schema= null;
-        _error=error;
-        return error;
-    };
     _drSchemaLoader
-      .getExpandedSchema(PRELOAD_SCHEMA_KEY)
+      .getExpandedSchema(TEST_SCHEMA_KEY)
       .then(_testSchema)
       .catch(_testFail)
       .finally(done);
-      _rootScope.$apply();
+     _rootScope.$apply();
+  });
+
+  it('should be able to ask for a expand a pre loaded schema set for a pre cached cached schema==>' +PRELOAD_SCHEMA_KEY ,
+    function(done){
+      function _testSchema(schema){
+        expect(schema).toBeUndefined();
+      }
+      function _testFail(error){
+        expect(error).not.toBeUndefined();
+      }
+
+      _drSchemaLoader
+        .getExpandedSchema(PRELOAD_SCHEMA_KEY )
+        .then(_testSchema)
+        .catch(_testFail)
+        .finally(done);
+       _rootScope.$apply();
   });
 
   it('should fail expansion on malformed schemas with missing $refs  ==>' +BAD_SCHEMA_KEY ,
