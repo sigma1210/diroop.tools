@@ -10,6 +10,9 @@
     "./src/**/*.js",
     "./temp/**/*.js"
   ],
+  "dist":[
+    "./dist/diroop.tools.js"
+  ],
   "testSupport":[
     "bower_components/angular-mocks/angular-mocks.js"
   ],

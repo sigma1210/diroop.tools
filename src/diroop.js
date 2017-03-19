@@ -8,5 +8,5 @@
           Json schema and the TV4 validator
    **/
   //ng.module('diroop.tools',['diroop.tools.templateCache']);
-  ng.module('diroop.tools',['diroop.tools.templateCache']);
+  ng.module('diroop.tools',['diroop.tools.templateCache','diroop.schema.cache']);
 })(angular);

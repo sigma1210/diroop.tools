@@ -1,6 +1,6 @@
 describe('unit test : <dr:version/> directive',function(){
 
-  var DIROOP_VERSION_TEMPLATE='<dr:version/>'
+  var DIROOP_VERSION_TEMPLATE='<dr:tool:version/>'
 
   var _rootScope,
       _compile;

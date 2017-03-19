@@ -164,45 +164,39 @@
        * @returns  a promise to resolve a expanded schema
      */
      function _expandSchemaSet(schemaSet){
-
-
-      var _SchemaNotFoundException = function(value){
-            var _self = this;
-            _self.value = value;
-            _self.message = ' could not be loaded';
-            _self.toString = function() {
-              return this.value + this.message;
-            };
-          };
-      function handleSchema(schema){
-        if(!schema)return;
-        if(schema.$ref){
-          var refSchema = schemaSet.tv4.getSchema(schema.$ref);
-          if(!refSchema){
-            throw new _SchemaNotFoundException(schema.$ref);
-          }else{
-            if(schema.isBeingHandled){
-              return ng.copy(refSchema);
-            }
-            else
-            {
-              schema.isBeingHandled = true;
-              return handleSchema(ng.copy(refSchema));
-            }
-          }
-          for(var propname in schema)
-          {
-             var prop = schema[propname];
-             if(typeof prop === 'object')
-             {
-                 delete schema[propname];
-                 schema[propname] = handleSchema(prop);
+       return $q(function(resolve,reject){
+         //local recursive function
+          function handleSchema(schema){
+            if(schema.$ref){
+             var refSchema = schemaSet.tv4.getSchema(schema.$ref);
+             if(!refSchema){
+                reject({
+                   message:TV4_SCHEMA_REQUEST_EXCEPTION,
+                   $ref:schema.$ref
+                 });
+                 return;
+             }else{
+               if(schema.isBeingHandled){
+                 return ng.copy(refSchema);
+               }
+               else
+               {
+                   schema.isBeingHandled = true;
+                   return handleSchema(ng.copy(refSchema));
+               }
              }
+            }
+            for(var propname in schema)
+            {
+               var prop = schema[propname];
+               if(typeof prop === 'object')
+               {
+                   delete schema[propname];
+                   schema[propname] = handleSchema(prop);
+               }
+            }
+            return schema;
           }
-          return schema;
-        }
-      }
-      return $q(function(resolve,reject){
           if(schemaSet && schemaSet.schema && schemaSet.tv4){
             var _schema = handleSchema(ng.copy(schemaSet.schema));
             if(_schema){

@@ -46,14 +46,16 @@ describe("Unit: drSchemaLoader",function(){
       _drSchemaCache.put(TEST_SCHEMA_KEY,TEST_FRAGMENT_1);
     }
     testPut();
+
     function _testSchema(schema){
-      expect(schema).toBeUndefined();
+      expect(schema).not.toBeUndefined();
     }
     function _testFail(error){
-      expect(error).not.toBeUndefined();
+      console.log(_drSchemaCache.getUris());
+      expect(error).toBeUndefined();
     }
     _drSchemaLoader
-      .getExpandedSchema(TEST_SCHEMA_KEY)
+      .getExpandedSchema("schemaCache:/address/address.schema.json")
       .then(_testSchema)
       .catch(_testFail)
       .finally(done);
@@ -63,10 +65,10 @@ describe("Unit: drSchemaLoader",function(){
   it('should be able to ask for a expand a pre loaded schema set for a pre cached cached schema==>' +PRELOAD_SCHEMA_KEY ,
     function(done){
       function _testSchema(schema){
-        expect(schema).toBeUndefined();
+        expect(schema).not.toBeUndefined();
       }
       function _testFail(error){
-        expect(error).not.toBeUndefined();
+        expect(error).toBeUndefined();
       }
 
       _drSchemaLoader

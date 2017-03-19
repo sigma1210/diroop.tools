@@ -1,9 +1,3 @@
-/**
-  inject from global
-  angular as ng
-  angular.module('diroop.tools').factory as factory
-  tv4 as tv
-**/
 (function(ng,factory,tv){
   'use strict';
  /**

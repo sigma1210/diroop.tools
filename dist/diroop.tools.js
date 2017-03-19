@@ -8,7 +8,7 @@
           Json schema and the TV4 validator
    **/
   //ng.module('diroop.tools',['diroop.tools.templateCache']);
-  ng.module('diroop.tools',['diroop.tools.templateCache']);
+  ng.module('diroop.tools',['diroop.tools.templateCache','diroop.schema.cache']);
 })(angular);
 
 (function(ng,factory){
@@ -195,6 +195,48 @@
   }
 })(angular, angular.module('diroop.tools').factory);
 
+(function(ng,provider){
+  'use strict';
+
+  /**
+    * @ngdoc provider
+    * @name drToolsSettingsProvider
+    * @memberof diroop.tools
+    * @description
+    *  Provides a tools for setting and asking fro configuration settings
+    */
+
+ var _settingsProvider=function(){
+    var _version ='1.0.0.1.x';
+    var _self = this;
+
+    _self.setVersion = function(version){
+      _version = version;
+    };
+
+    // the actuul factory
+    function _drToolsSettings(){
+      var drToolsSettings={
+        getVersion:_getVersion,
+      };
+      return drToolsSettings;
+      /**
+        * @ngdoc function
+        * @name drToolsSettings.getVersion
+        *
+        * @description
+        *  used to request access the diroop tools version
+        * @returns {string} version of diroop tools
+      */
+      function _getVersion(){
+        return _version;
+      }
+    }
+    _self.$get = [_drToolsSettings];
+  };
+  provider('drToolsSettings', [_settingsProvider]);
+})(angular,angular.module('diroop.tools').provider);
+
 (function(ng,factory){
   'use strict';
   /**ß
@@ -361,45 +403,39 @@
        * @returns  a promise to resolve a expanded schema
      */
      function _expandSchemaSet(schemaSet){
-
-
-      var _SchemaNotFoundException = function(value){
-            var _self = this;
-            _self.value = value;
-            _self.message = ' could not be loaded';
-            _self.toString = function() {
-              return this.value + this.message;
-            };
-          };
-      function handleSchema(schema){
-        if(!schema)return;
-        if(schema.$ref){
-          var refSchema = schemaSet.tv4.getSchema(schema.$ref);
-          if(!refSchema){
-            throw new _SchemaNotFoundException(schema.$ref);
-          }else{
-            if(schema.isBeingHandled){
-              return ng.copy(refSchema);
-            }
-            else
-            {
-              schema.isBeingHandled = true;
-              return handleSchema(ng.copy(refSchema));
-            }
-          }
-          for(var propname in schema)
-          {
-             var prop = schema[propname];
-             if(typeof prop === 'object')
-             {
-                 delete schema[propname];
-                 schema[propname] = handleSchema(prop);
+       return $q(function(resolve,reject){
+         //local recursive function
+          function handleSchema(schema){
+            if(schema.$ref){
+             var refSchema = schemaSet.tv4.getSchema(schema.$ref);
+             if(!refSchema){
+                reject({
+                   message:TV4_SCHEMA_REQUEST_EXCEPTION,
+                   $ref:schema.$ref
+                 });
+                 return;
+             }else{
+               if(schema.isBeingHandled){
+                 return ng.copy(refSchema);
+               }
+               else
+               {
+                   schema.isBeingHandled = true;
+                   return handleSchema(ng.copy(refSchema));
+               }
              }
+            }
+            for(var propname in schema)
+            {
+               var prop = schema[propname];
+               if(typeof prop === 'object')
+               {
+                   delete schema[propname];
+                   schema[propname] = handleSchema(prop);
+               }
+            }
+            return schema;
           }
-          return schema;
-        }
-      }
-      return $q(function(resolve,reject){
           if(schemaSet && schemaSet.schema && schemaSet.tv4){
             var _schema = handleSchema(ng.copy(schemaSet.schema));
             if(_schema){
@@ -501,12 +537,6 @@
    }
 })(angular, angular.module('diroop.tools').filter);
 
-/**
-  inject from global
-  angular as ng
-  angular.module('diroop.tools').factory as factory
-  tv4 as tv
-**/
 (function(ng,factory,tv){
   'use strict';
  /**
@@ -637,11 +667,11 @@
 
 (function(ng,directive){
   'use strict';
-  directive('drVersion',['$log',_drVersion]);
+  directive('drToolVersion',['$log',_drVersion]);
   function _drVersion(){
     //@todo get from config
     var DIROOP_TOOL_VERSION ='v 1.0.0.0';
-    
+
     return {
       templateUrl:'drTemplateCache:/version/version.html',
       link :_link,
