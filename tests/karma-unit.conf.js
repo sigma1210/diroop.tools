@@ -34,7 +34,6 @@
                  .concat(_needed.source)
                  .concat(_needed.tests);
       conf.files = f;
-      console.log(JSON.stringify(f));
       return conf;
     }
   }

@@ -1,7 +1,9 @@
 describe("Unit: drSchemaLoader",function(){
     var _rootScope,
         _drSchemaLoader,
-        _drSchemaCache;
+        _drSchemaCache,
+        _filter;
+
 
     var TEST_FRAGMENT_1 = {
           "type": "object",
@@ -29,11 +31,11 @@ describe("Unit: drSchemaLoader",function(){
   beforeEach(module('diroop.tools'));
 
 
-  beforeEach(inject(function(drSchemaLoader,drSchemaCache,$rootScope){
+  beforeEach(inject(function(drSchemaLoader,drSchemaCache,$rootScope,$filter){
       _drSchemaLoader= drSchemaLoader,
       _drSchemaCache = drSchemaCache;
       _rootScope = $rootScope;
-
+      _filter = $filter;
   }));
 
   it('should contain an drSchemaLoader service',function(){
@@ -65,9 +67,11 @@ describe("Unit: drSchemaLoader",function(){
   it('should be able to ask for a expand a pre loaded schema set for a pre cached cached schema==>' +PRELOAD_SCHEMA_KEY ,
     function(done){
       function _testSchema(schema){
+        //should execute
         expect(schema).not.toBeUndefined();
       }
       function _testFail(error){
+        //should never execute -- test falure
         expect(error).toBeUndefined();
       }
 
@@ -82,16 +86,22 @@ describe("Unit: drSchemaLoader",function(){
   it('should fail expansion on malformed schemas with missing $refs  ==>' +BAD_SCHEMA_KEY ,
     function(done){
       function _testSchema(schema){
+        //this should never occur -- test failure
         expect(schema).toBeUndefined();
       }
       function _testFail(error){
+        // we expect a failure
         expect(error).not.toBeUndefined();
+        console.log(_filter('json')(error));
       }
+
       _drSchemaLoader
         .getExpandedSchema(BAD_SCHEMA_KEY)
         .then(_testSchema)
         .catch(_testFail)
         .finally(done);
+
        _rootScope.$apply();
+
     });
 });

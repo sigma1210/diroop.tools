@@ -113,7 +113,7 @@ describe("Unit: schemaCache",function(){
   }));
 
   it('should be able to get info about the Cache',
-    inject(function(drSchemaCache) {
+    inject(function(drSchemaCache,$filter) {
       function testPut(){
         drSchemaCache.put(TEST_SCHEMA_KEY,TEST_FRAGMENT_1);
         drSchemaCache.put(TEST_SCHEMA_KEY2,TEST_FRAGMENT_1);
@@ -121,6 +121,7 @@ describe("Unit: schemaCache",function(){
       var _info;
       function getInfo(){
         _info = drSchemaCache.info();
+        //console.log($filter('json')(_info));
       }
       testPut();
       expect(getInfo).not.toThrow();

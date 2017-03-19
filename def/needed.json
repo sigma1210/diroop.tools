@@ -3,7 +3,8 @@
     "bower_components/angular/angular.min.js",
     "bower_components/tv4/tv4.js",
     "bower_components/moment/min/moment.min.js",
-    "bower_components/underscore/underscore-min.js"
+    "bower_components/underscore/underscore-min.js",
+    "bower_components/angular-ui-format/format.min.js"
   ],
   "source":[
     "./src/*.js",
