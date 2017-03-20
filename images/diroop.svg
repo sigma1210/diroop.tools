@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 500 500" preserveAspectRatio="xMaxYMid" xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com">
+  <rect x="0" y="0" width="500" height="500" style="stroke: rgb(0, 0, 0);"/>
+  <rect x="80" y="80" width="340" height="340" rx="100" ry="100" style="fill: none; stroke-width: 15; stroke: rgb(255, 255, 255);" />
+  <ellipse cx="250" cy="250" rx="70" ry="60" style="stroke-width: 15; stroke: rgb(255, 255, 255); fill: rgba(216, 216, 216, 0.00784314);"/>
+  <ellipse cx="175" cy="175" rx="18" ry="18" style="fill: rgb(255, 255, 255); stroke-width: 3; stroke: rgb(255, 255, 255);"/>
+  <ellipse cx="325" cy="175" rx="18" ry="18" style="fill: rgb(255, 255, 255); stroke-width: 3; stroke: rgb(255, 255, 255);"/>
+  <ellipse cx="250" cy="230" rx="18" ry="10" style="fill: rgb(255, 255, 255); stroke: rgb(255, 255, 255);"/> 
+
+
+
+
+</svg>

@@ -1,6 +1,6 @@
 (function(ng,factory){
   'use strict';
-  /**ß
+  /**
    * @ngdoc service
    * @name drSchemaLoader
    * @memberof diroop.tools
