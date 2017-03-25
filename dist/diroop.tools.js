@@ -12,6 +12,313 @@
 })(angular);
 
 (function(ng,factory){
+    'use strict';
+  /**
+   * @ngdoc service
+   * @name drCacheTreeService
+   * @requires $log              it was a hard $log back to base camp.
+   * @requires $q                promises must be kept.
+   * @requires $document         using $document path parsing abilities
+   * @requires drSchemaCache     needs to know all schemas cached.
+
+   * @description
+      Reads the scheam cache and parses it into a tree of nodes so that it can
+      be represent as a abstract file system with the schama placed in folderSegments
+   */
+
+  factory('drCacheTreeService',['$log', '$q','$document','drSchemaCache', _cacheTreeService]);
+  function _cacheTreeService($log,$q,$document,schemaCache){
+    var PROTOCOL_NODE_TYPE    ='PROTOCOL_NODE_TYPE',
+        FOLDER_NODE_TYPE      ='FOLDER_NODE_TYPE',
+        SCHEMA_NODE_TYPE      ='SCHEMA_NODE_TYPE',
+        ROOT_NODE_TYPE        ='$TREE_ROOT_NODE',
+        DEFAULT_TREE_ROOT     ={
+          name:'$cacheroot',
+          nodes:[],
+          type:ROOT_NODE_TYPE
+        },
+        _treeRoot=ng.copy(DEFAULT_TREE_ROOT),
+        cacheTreeService ={
+          addPath:_addPath,
+          getTree:_getTree,
+        };
+    return cacheTreeService;
+
+    /**
+      * @ngdoc function
+      * @name drCacheTreeService.getTree
+      *
+      * @description
+      *  parses the schema cache and produces a tree node
+      *  representation  of the cache so that the cache can pre represented
+      *  as an abstarct file system
+      * @returns a promise to resolve the contructed tree or reject with an error
+      * decribing the reason for failure
+      *
+    */
+    function _getTree(){
+      return $q(function(resolve,reject){
+        _treeRoot=ng.copy(DEFAULT_TREE_ROOT);
+        var _uris = ng.copy(schemaCache.getUris());
+        function _addUri(uri){
+            if(uri){
+              _addPath(uri)
+                .then(function(tree){
+                  _uris.shift();
+                  if(_uris.length===0){
+                      resolve(_treeRoot);
+                  }else{
+                    _addUri(_uris[0]);
+                  }
+                })
+                .catch(function(error){
+                  reject(error);
+                });
+            }else{
+              resolve(_treeRoot);
+            }
+        }
+        _addUri(_uris[0]);
+      });
+    }
+
+
+    function _addPath(path){
+      return $q(function(resolve,reject){
+        if(!path){
+          reject({
+            message:'no path specified'
+          });
+        }else{
+          var _parsed=_parsePath(path);
+          _addParsedPath(_parsed)
+            .then(function(tree){
+              resolve(tree);
+            })
+            .catch(function(error){
+              reject({
+                message:'an error occured add parsed path',
+                path:_parsed,
+                error:error
+              });
+            });
+        }
+      });
+    }
+
+    function _addParsedPath(parsedPath){
+      return $q(function(resolve,reject){
+        if(parsedPath && parsedPath.protocol){
+          _getProtocolNode(parsedPath)
+            .then(function(protocolNode){
+              protocolNode
+                .addPath(parsedPath.segments)
+                .then(function(tree){
+                  resolve(tree);
+                })
+                .catch(function(error){
+                  reject({
+                    message:" pn add path error",
+                    error:error
+                  });
+                });
+            })
+            .catch(function(error){
+              reject({
+                message:"get pn error",
+                error:error
+
+              });
+            });
+        }else{
+          reject({
+            message:'malformed Parsed Path',
+            parsedPath:parsedPath
+          });
+        }
+      });
+    }
+
+    function _getFolder(parent,segments){
+      return $q(function(resolve,reject){
+        if(parent){
+          if(ng.isArray(segments)&&segments.length>0){
+            var _folderName = segments[0];
+            if(parent.nodes[_folderName]){
+              resolve(parent.nodes[_folderName]);
+            }else{
+              _createFolderNode(_folderName,segments)
+                .then(function(folderNode){
+                  parent.nodes[_folderName] = folderNode;
+                  parent.nodes.push(folderNode)
+                  resolve(parent.nodes[_folderName]);
+                })
+                .catch(function(error){
+                  reject(error);
+                });
+            }
+          }else{
+            reject({
+              message:'malformed path segments being added to parent',
+              segments:segements,
+              parent:parent
+            });
+          }
+        }else{
+          reject({
+            message:'parent node not specified'
+          });
+        }
+      });
+    }
+
+    function _createFolderNode(folderName,folderSegments){
+
+      var FolderNode = function(name){
+        var _self= this;
+        _self.name       = name;
+        _self.nodes      = [];
+        _self.addPath    = _addPath;
+        _self.type       = FOLDER_NODE_TYPE;
+
+        function _addPath(segments){
+          return $q(function(resolve,reject){
+            if(ng.isArray(segments)&&segments.length>0){
+              _getFolder(_self,segments)
+                .then(function(folder){
+                  segments.shift();
+                  folder
+                    .addPath(segments)
+                    .then(function(nfolder){
+                      resolve(_self);
+                    })
+                    .catch(function(error){
+                      resolve(_self);
+                    });
+                })
+                .catch(function(error){
+                  resolve(_self);
+                });
+            }else{
+              resolve(_self);
+            }
+          });
+        }
+
+      };
+
+      var SchemaNode=function(name){
+        var _self = this;
+        _self.type= SCHEMA_NODE_TYPE
+        _self.$ref=name;
+        _self.schema=null;
+        _self.addPath = function(){
+          return $q.when(_self);
+        };
+
+      };
+
+
+
+      return $q(function(resolve,reject){
+        if((folderName||'').endsWith('.schema.json')||folderSegments.length===1){
+          resolve(new SchemaNode(folderName));
+        }else{
+          var _Fn = new FolderNode(folderName);
+          folderSegments.shift();
+          _Fn.addPath(folderSegments)
+            .then(function(){
+                resolve(_Fn);
+            })
+            .catch(function(error){
+                resolve(_Fn);
+            });
+        }
+      });
+    }
+
+    function _createNewProtocol(parsedPath){
+      var ProtocolNode = function(protocol){
+        var _protocol    = protocol,
+            _self        = this;
+        _self.name       = protocol;
+        _self.type       = PROTOCOL_NODE_TYPE;
+        _self.nodes      = [];
+        _self.addPath    = _addPath;
+        function _addPath(segments){
+          return $q(function(resolve,reject){
+            if(ng.isArray(segments)&&segments.length>0){
+              _getFolder(_self,segments)
+                .then(function(folder){
+                  segments.shift();
+                  folder
+                    .addPath(segments)
+                    .then(function(nfolder){
+                      resolve(_self);
+                    })
+                    .catch(function(error){
+                      resolve(_self);
+                    });
+                })
+                .catch(function(error){
+                  resolve(_self);
+                });
+            }else{
+              resolve(_self);
+            }
+          });
+        }
+
+      };
+      //return new ProtocolNode(parsedPath.protocol);
+      return $q.when(new ProtocolNode(parsedPath.protocol));
+    }
+    function _getProtocolNode(parsedPath){
+      return $q(function(resolve,reject){
+
+
+        if(_treeRoot.nodes[parsedPath.protocol]){
+          resolve(_treeRoot.nodes[parsedPath.protocol]);
+        }else{
+           _createNewProtocol(parsedPath)
+           .then(function(pn){
+             _treeRoot.nodes[parsedPath.protocol] = pn;
+            _treeRoot.nodes.push(pn);
+            resolve(_treeRoot.nodes[parsedPath.protocol]);
+           })
+           .catch(function(error){
+             reject({
+               message:'an error occcuer creating new protocol node',
+               error:error
+             });
+           });
+        }
+      });
+    }
+    function _parsePath(path){
+      if(!path)return null;
+      var parser = document.createElement('a');
+      parser.href =path;
+      var _segments=[];
+      var parts = (parser.pathname||'').split('/');
+      ng.forEach(parts,function(part){
+        if(part){
+          _segments.push(part);
+        }
+      });
+      return{
+        protocol:(parser.protocol||'').split(':')[0],
+        pathName:parser.pathname,
+        segments:_segments,
+        path:path
+      };
+    }
+
+}
+
+})(angular,angular.module('diroop.tools').factory);
+
+(function(ng,factory){
   'use strict';
   /**
    * @ngdoc service
@@ -32,7 +339,7 @@
    *  drSchemaCache.get('sibling/siblingSchema.json');
    * ```
    */
-  factory('drSchemaCache',['$cacheFactory', _schemaCache]);
+  factory('drSchemaCache',['$cacheFactory',  _schemaCache]);
   function _schemaCache($cacheFactory){
     var JSON_SCHEMA_NAME_SPACE='drSchemaCache';
     //define the interface
@@ -44,12 +351,12 @@
       removeAll:_removeAll,
       destroy : _destroy,
       hasKey:_hasKey,
-      getUris:_getUris
+      getUris:_getUris,
     };
 
     var _cache=null,
-        _uris =[];
-
+        _uris =[],
+        _cacheTree = null;
 
     /**
       * @ngdoc function
@@ -65,7 +372,6 @@
     }
 
 
-
     /**
       * @ngdoc function
       * @name drSchemaCache.put
@@ -78,11 +384,13 @@
     */
 
     function _put(uri,schema){
+
       if(schema && uri){
           //schema.id = key;
           _addUri(uri);
           _schemaCache().put(uri,schema);
       }
+
     }
 
     /**
@@ -97,6 +405,7 @@
 
 
     function _get(uri){
+
       return _schemaCache().get(uri);
     }
 
@@ -183,7 +492,6 @@
     }
 
     // a untility funtion used to initialize and return the cache when needed
-
     function _schemaCache(){
       if(!_cache){
         _cache= $cacheFactory(JSON_SCHEMA_NAME_SPACE);
@@ -236,6 +544,20 @@
   };
   provider('drToolsSettings', [_settingsProvider]);
 })(angular,angular.module('diroop.tools').provider);
+
+(function(){
+    if (!String.prototype.endsWith) {
+      String.prototype.endsWith = function(searchString, position) {
+          var subjectString = this.toString();
+          if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
+            position = subjectString.length;
+          }
+          position -= searchString.length;
+          var lastIndex = subjectString.lastIndexOf(searchString, position);
+          return lastIndex !== -1 && lastIndex === position;
+      };
+    }
+})();
 
 (function(ng,factory){
   'use strict';
@@ -655,11 +977,10 @@
   }
 })(angular,angular.module('diroop.tools').factory);
 
-(function(ng,directive){
+(function(ng,component){
   'use strict';
-
   /**
-   * @ngdoc directive
+   * @ngdoc component
    * @name drToolsVersion
    * @memberof diroop.tools
    * @requires $log                - can't live without $log
@@ -670,33 +991,32 @@
    * @description
         a directive used to display current diroop tools version
    * @example
-      <ssatb:json:viewer entity="theObjectToBeDisplayed" />
+      <dr:tool:version></dr:tool:version>
   **/
-
-
-
-
-
-  directive('drToolVersion',['$log','$filter','drToolsSettings',_drVersion]);
-  function _drVersion($log,$filter,settings){
-    //@todo get from config
-
-    var DIROOP_TOOL_VERSION ='diroop.tools : v:version';
-
-    return {
+  component('drToolVersion',{
       templateUrl:'drTemplateCache:/version/version.html',
-      link :_link,
-    };
+      controller:['$log','$filter','drToolsSettings','drCacheTreeService',function($log,$filter,settings,drCacheTreeService){
+        var DIROOP_TOOL_VERSION ='diroop.tools : v:version';
+        var _self = this;
+        _self.version=$filter('format')(DIROOP_TOOL_VERSION,{
+            version:settings.getVersion()
+        });
+        // _self.test= function(){
+        //   drCacheTreeService
+        //     .getTree()
+        //     .then(_testSuccess)
+        //     .catch(_testError);
+        // };
+        // function _testSuccess(response){
+        //     $log.debug($filter('json')(response));
+        // }
+        // function _testError(error){
+        //     $log.debug($filter('json')(error));
+        // }
 
-    function _link(scope,elem,attrs){
-      scope.version = $filter('format')(DIROOP_TOOL_VERSION,{
-        version:settings.getVersion()
-      });
-    }
-
-  }
-
-})(angular,angular.module('diroop.tools').directive);
+      }]
+  });
+})(angular,angular.module('diroop.tools').component);
 
 (function(ng) {
 try {
@@ -824,6 +1144,27 @@ app.run(['drSchemaCache', function(schemaCache) {
 }]);
 })(angular);
 
+(function(ng) {
+try {
+  app = ng.module('diroop.schema.cache');
+} catch (e) {
+  app = ng.module('diroop.schema.cache', ['diroop.tools']);
+}
+app.run(['drSchemaCache', function(schemaCache) {
+  schemaCache.put('schemaCache:/really/really/really/deep/test.schema.json',
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "A geographical coordinate",
+    "type": "object",
+    "properties": {
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" }
+    }
+}
+);
+}]);
+})(angular);
+
 (function(module) {
 try {
   module = angular.module('diroop.tools.templateCache');
@@ -832,6 +1173,6 @@ try {
 }
 module.run(['$templateCache', function($templateCache) {
   $templateCache.put('drTemplateCache:/version/version.html',
-    '<div class="dr-version"><small>{{version}}</small></div>');
+    '<div class="dr-version"><small>{{$ctrl.version}}</small></div>');
 }]);
 })();

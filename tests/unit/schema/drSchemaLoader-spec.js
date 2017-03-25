@@ -53,7 +53,6 @@ describe("Unit: drSchemaLoader",function(){
       expect(schema).not.toBeUndefined();
     }
     function _testFail(error){
-      console.log(_drSchemaCache.getUris());
       expect(error).toBeUndefined();
     }
     _drSchemaLoader
@@ -92,7 +91,6 @@ describe("Unit: drSchemaLoader",function(){
       function _testFail(error){
         // we expect a failure
         expect(error).not.toBeUndefined();
-        console.log(_filter('json')(error));
       }
 
       _drSchemaLoader

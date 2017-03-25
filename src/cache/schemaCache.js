@@ -19,7 +19,7 @@
    *  drSchemaCache.get('sibling/siblingSchema.json');
    * ```
    */
-  factory('drSchemaCache',['$cacheFactory', _schemaCache]);
+  factory('drSchemaCache',['$cacheFactory',  _schemaCache]);
   function _schemaCache($cacheFactory){
     var JSON_SCHEMA_NAME_SPACE='drSchemaCache';
     //define the interface
@@ -31,12 +31,12 @@
       removeAll:_removeAll,
       destroy : _destroy,
       hasKey:_hasKey,
-      getUris:_getUris
+      getUris:_getUris,
     };
 
     var _cache=null,
-        _uris =[];
-
+        _uris =[],
+        _cacheTree = null;
 
     /**
       * @ngdoc function
@@ -52,7 +52,6 @@
     }
 
 
-
     /**
       * @ngdoc function
       * @name drSchemaCache.put
@@ -65,11 +64,13 @@
     */
 
     function _put(uri,schema){
+
       if(schema && uri){
           //schema.id = key;
           _addUri(uri);
           _schemaCache().put(uri,schema);
       }
+
     }
 
     /**
@@ -84,6 +85,7 @@
 
 
     function _get(uri){
+
       return _schemaCache().get(uri);
     }
 
@@ -170,7 +172,6 @@
     }
 
     // a untility funtion used to initialize and return the cache when needed
-
     function _schemaCache(){
       if(!_cache){
         _cache= $cacheFactory(JSON_SCHEMA_NAME_SPACE);
