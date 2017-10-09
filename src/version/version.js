@@ -22,19 +22,6 @@
         _self.version=$filter('format')(DIROOP_TOOL_VERSION,{
             version:settings.getVersion()
         });
-        // _self.test= function(){
-        //   drCacheTreeService
-        //     .getTree()
-        //     .then(_testSuccess)
-        //     .catch(_testError);
-        // };
-        // function _testSuccess(response){
-        //     $log.debug($filter('json')(response));
-        // }
-        // function _testError(error){
-        //     $log.debug($filter('json')(error));
-        // }
-
       }]
   });
 })(angular,angular.module('diroop.tools').component);

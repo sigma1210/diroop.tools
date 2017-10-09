@@ -5,7 +5,8 @@
    * @name drSchemaListService
    * @memberof diroop.tools
    * @requires $q                  - always return a promise
-   * @requires $log                - log errors
+   * @requires $log                - $log, $wog, $pollywog, $frog
+   * @requires $filter             - used to accesse angular filtes
    * @requires drSchemaCache
                   as schemaCahe    - the schema cache
    * @description

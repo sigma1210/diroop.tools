@@ -3,6 +3,11 @@
 
   var gulp = require('gulp')
 
+
+  /*
+
+  Define Each of the gulp task and any of their dependant tasks
+  */
   gulp.task('clean',clean);
   gulp.task('jshint', jshint);
   gulp.task('jshintTest',jshintTests);
@@ -12,14 +17,17 @@
   gulp.task('test', ['build'],unitTests);
   gulp.task('watch', ['build'],watch);
   gulp.task('default', ['watch']);
+  /*
+    Import all dependant modules for use within
+  */
 
-  var concat      = require('gulp-concat'),
-      rename      = require('gulp-rename'),
-      jshint      = require('gulp-jshint'),
-      ngHtml2Js   = require("gulp-ng-html2js"),
-      ngSchema2js = require("./gulp_extentions/gulp-ng-schema2dr"),
-      minifyHtml  = require('gulp-minify-html'),
-      cssToJs     = require('gulp-css-to-js'),
+  var concat      = require('gulp-concat'),// used to concatinate files
+      rename      = require('gulp-rename'),// used to rename files
+      jshint      = require('gulp-jshint'),// used to in sure javascript is written to standard and can be uglified
+      ngHtml2Js   = require("gulp-ng-html2js"),// used to package angular html fragment into templatecache
+      ngSchema2js = require("./gulp_extentions/gulp-ng-schema2dr"),// a custom node modues which packages json  schema files into the schemaCache
+      minifyHtml  = require('gulp-minify-html'),// used to minify the html templates
+      cssToJs     = require('gulp-css-to-js'),// Used to
       cleanCss    = require('gulp-clean-css'),
       less        = require('gulp-less'),
       base64      = require('gulp-base64'),
@@ -28,16 +36,16 @@
       del         = require('del'),
       fs          = require('fs');
 
-  var SRC_DIRECTORY                   = './src/**/*.js',
-      TEST_SRC_DIRECTORY              = './test/**/*.js',
-      JSHINT_SRC_DIRECTORIES          = [SRC_DIRECTORY],
-      TEMP_DIRECTORIES                = ['./temp/*', './dist/*'],
+  var SRC_DIRECTORY                   = './src/**/*.js',//the directory conatinin the Javascript source
+      TEST_SRC_DIRECTORY              = './test/**/*.js',//the directory that contains the javascript test files
+      JSHINT_SRC_DIRECTORIES          = [SRC_DIRECTORY],//an array containing all the directtories that require hinting
+      TEMP_DIRECTORIES                = ['./temp/*', './dist/*'],//an array of all the directoris that will be deleted during a clean
       CODE_FILES                      = [
                                           './src/*.js',
                                           './src/**/*.js',
                                           './temp/templates/*.js',
                                           './temp/schemas/*.js'
-                                        ],
+                                        ],// A list of the files that will be packaged into the file distrubution file
       TEST_FILES                      = [
                                          './testmodule/*.js',
                                          './testmodule/**/*.js',
@@ -133,6 +141,12 @@
     function watch(){
         gulp.watch(WATCH_FILES , ['jshint', 'build']);
     }
+
+    function checkDoc(){
+      var doc = require('ngDoc');
+      return gulp.src(CODE_FILES).pipe(doc.validate());
+    }
+
 
 
 

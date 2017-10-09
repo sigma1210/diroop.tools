@@ -12,7 +12,7 @@
    * @memberof diroop.tools
 
    * @requires $q                 - what service can live without $q
-   * @requires $log               - what service can live without $log
+   * @requires $log               - $log all errors
    * @requires drSchemaLoader     - load schemas
 
    * @description

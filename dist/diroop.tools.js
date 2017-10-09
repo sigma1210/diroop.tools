@@ -5,11 +5,66 @@
       *@name diroop.tools
       *@description
           a module which provides basic validatiopn services using
-          Json schema and the TV4 validator
+          Json schema and the TV4 validator.
    **/
-  //ng.module('diroop.tools',['diroop.tools.templateCache']);
+
+
+
   ng.module('diroop.tools',['diroop.tools.templateCache','diroop.schema.cache','ui.format']);
 })(angular);
+
+// inject angular as ng
+// inject gular.module('diroop.tools').provider as provider
+(function(ng,provider){
+  'use strict';
+  /**
+    * @ngdoc provider
+    * @name drToolsSettingsProvider
+    * @memberof diroop.tools
+    * @description
+    *  Provides a tools for setting and asking for configuration settings
+    */
+
+ var _settingsProvider=function(){
+   //the default version
+    var _version ='1.0.0.1.x';
+    //use _self as a reference to the current instance
+    var _self = this;
+    /**
+     * @name drToolsSettings.setVersion
+     * @module diroop.tools
+     * @description
+     *  set the current version of diroop.tools
+
+     * @param {version} string the string value for the version of diroop.tools
+     */
+    _self.setVersion = function(version){
+      // set the version to the string
+      _version = version;
+    };
+    // the actual factory retyurn by the provider
+    function _drToolsSettings(){
+      // define the interface to be exposed
+      var drToolsSettings={
+        getVersion:_getVersion,
+      };
+      return drToolsSettings;
+      /**
+        * @ngdoc function
+        * @name drToolsSettings.getVersion
+        * @module diroop.tools
+        * @description
+        *  used to request access the diroop tools version
+        * @returns {string} version of diroop tools
+      */
+      function _getVersion(){
+        return _version;
+      }
+    }
+    _self.$get = [_drToolsSettings];
+  };
+  provider('drToolsSettings', [_settingsProvider]);
+})(angular,angular.module('diroop.tools').provider);
 
 (function(ng,factory){
     'use strict';
@@ -82,6 +137,17 @@
       });
     }
 
+    /**
+      * @ngdoc function
+      * @name _addpath
+      *
+      * @description
+      ?
+
+      * @returns a promise to resolve the contructed tree or reject with an error
+      * decribing the reason for failure
+      *
+    */
 
     function _addPath(path){
       return $q(function(resolve,reject){
@@ -503,50 +569,15 @@
   }
 })(angular, angular.module('diroop.tools').factory);
 
-(function(ng,provider){
-  'use strict';
-
-  /**
-    * @ngdoc provider
-    * @name drToolsSettingsProvider
-    * @memberof diroop.tools
-    * @description
-    *  Provides a tools for setting and asking fro configuration settings
-    */
-
- var _settingsProvider=function(){
-    var _version ='1.0.0.1.x';
-    var _self = this;
-
-    _self.setVersion = function(version){
-      _version = version;
-    };
-
-    // the actuul factory
-    function _drToolsSettings(){
-      var drToolsSettings={
-        getVersion:_getVersion,
-      };
-      return drToolsSettings;
-      /**
-        * @ngdoc function
-        * @name drToolsSettings.getVersion
-        *
-        * @description
-        *  used to request access the diroop tools version
-        * @returns {string} version of diroop tools
-      */
-      function _getVersion(){
-        return _version;
-      }
-    }
-    _self.$get = [_drToolsSettings];
-  };
-  provider('drToolsSettings', [_settingsProvider]);
-})(angular,angular.module('diroop.tools').provider);
-
 (function(){
+  /** extend the Javascript string object to have an endsWith method
+  if the version of javascript  does not have the method on the string object
+ **/
     if (!String.prototype.endsWith) {
+      // IIF the sdtring object does not have an endsWith method
+      // use js Prototype to extend the String class with the method endwith
+
+
       String.prototype.endsWith = function(searchString, position) {
           var subjectString = this.toString();
           if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
@@ -566,7 +597,8 @@
    * @name drSchemaListService
    * @memberof diroop.tools
    * @requires $q                  - always return a promise
-   * @requires $log                - log errors
+   * @requires $log                - $log, $wog, $pollywog, $frog
+   * @requires $filter             - used to accesse angular filtes
    * @requires drSchemaCache
                   as schemaCahe    - the schema cache
    * @description
@@ -603,7 +635,10 @@
   }
 })(angular,angular.module('diroop.tools').factory);
 
+// inject angular as ng
+// inject angular.module('diroop.tools').factory as factory
 (function(ng,factory){
+  //closure
   'use strict';
   /**
    * @ngdoc service
@@ -611,16 +646,18 @@
    * @memberof diroop.tools
    * @requires $http               - to request information via http
    * @requires $q                  - always return a promise
-   * @requires $log                - log errors
+   * @requires $log                - $log errors - never use alert or console.log
    * @requires drSchemaCache       - the schema cache
-   * @requires drTv4Service        - need to tv4
+   * @requires drTv4Service        - needed to wrap tv4 in an angular service
    * @description
    *  the drSchemaLoader servive is used to request and expanded json schema
    *  defined in accordance with the http://json-schema.org/latest/json-schema-core.html
    */
-
    factory('drSchemaLoader',['$http','$q','$log','drSchemaCache','drTv4Service',_drSchemaLoader]);
+
    function _drSchemaLoader($http,$q,$log,drSchemaCache,drTv4Service){
+     // define the revealing module
+     // define constants -
       var  CURRENT_URL_NOT_CACHED_EXCEPTION   = 'The current url does not have a a schema stored in drSchemaCache.',
            MAX_SCHEMA_QUOTA_EXCEPTION         = 'Maximum Schema Quota has been exceeded.',
            SCHEMA_EXPANSION_EXCEPTION         = 'An error occured expanded schema for uri.',
@@ -628,7 +665,7 @@
            TV4_SCHEMA_REQUEST_EXCEPTION       = 'An error occured resolving a url from tv4',
            EXPANSION_ERROR                    = 'An unspecified error resulted in a null schema.',
            SCHEMA_SET_INTERFACE_ERROR         = 'The schema set did not meet the expected interfacte.',
-           MAX_SCHEMA_QUOTA                    = 10000;
+           MAX_SCHEMA_QUOTA                    = 10000;// the maximum numbers of schemas that can be fetched used to prevent infinite recursion
     // define the interface
       var drSchemaLoader={
           getSchemaSet: _getSchemaSet,
@@ -652,19 +689,21 @@
      function _getSchemaSet(uri){
        return $q(function(resolve,reject){
              drTv4Service
-              .getValidator()
+              .getValidator() // returns the current inject validator via promise
               .then(function(_tv4){
-                 var _newTv4      = _tv4.freshApi(),
+                // if tv4 is linked then a pointer to validator will be returned
+                 var _newTv4      = _tv4.freshApi(),// get a new instance w/o schemas loaded
                      _originalUri = uri,
                      _trys        = 0;
-                recursiveFetch(uri);
+                recursiveFetch(uri);// execute recursice function
                 /* recursive function*/
                 function recursiveFetch(url){
                   _trys++;
-                  // drop out id schema quota exceeded
+                  // drop out id schema quota exceeded this
                   if(_trys>MAX_SCHEMA_QUOTA){
+                    //reject the promise
                    reject({
-                     message:'Maximum Schema Quota Exceeed'
+                     message:MAX_SCHEMA_QUOTA_EXCEPTION
                    });
                   }else{
                     _loadSchemaUrl(url)
@@ -679,7 +718,6 @@
                         }else{
                           recursiveFetch(_missing[0]);
                         }
-
                       })
                       .catch(function(error){
                         reject(error);
@@ -730,7 +768,7 @@
      * @description
      *  used to request a schema by its url and return the schema with all its
         $ref being expanded.
-     * @param {string} uri of the schema being
+     * @param {string} uri of the schema being loaded
      * @returns  a promise to return an expanded schema
    */
 
@@ -910,7 +948,7 @@
    * @memberof diroop.tools
 
    * @requires $q                 - what service can live without $q
-   * @requires $log               - what service can live without $log
+   * @requires $log               - $log all errors
    * @requires drSchemaLoader     - load schemas
 
    * @description
@@ -1001,19 +1039,6 @@
         _self.version=$filter('format')(DIROOP_TOOL_VERSION,{
             version:settings.getVersion()
         });
-        // _self.test= function(){
-        //   drCacheTreeService
-        //     .getTree()
-        //     .then(_testSuccess)
-        //     .catch(_testError);
-        // };
-        // function _testSuccess(response){
-        //     $log.debug($filter('json')(response));
-        // }
-        // function _testError(error){
-        //     $log.debug($filter('json')(error));
-        // }
-
       }]
   });
 })(angular,angular.module('diroop.tools').component);
@@ -1043,27 +1068,6 @@ app.run(['drSchemaCache', function(schemaCache) {
     "dependencies": {
         "post-office-box": ["street-address"],
         "extended-address": ["street-address"]
-    }
-}
-);
-}]);
-})(angular);
-
-(function(ng) {
-try {
-  app = ng.module('diroop.schema.cache');
-} catch (e) {
-  app = ng.module('diroop.schema.cache', ['diroop.tools']);
-}
-app.run(['drSchemaCache', function(schemaCache) {
-  schemaCache.put('schemaCache:/geo/geo.schema.json',
-{
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "description": "A geographical coordinate",
-    "type": "object",
-    "properties": {
-        "latitude": { "type": "number" },
-        "longitude": { "type": "number" }
     }
 }
 );
@@ -1138,6 +1142,27 @@ app.run(['drSchemaCache', function(schemaCache) {
                 "organizationUnit": { "type": "string" }
             }
         }
+    }
+}
+);
+}]);
+})(angular);
+
+(function(ng) {
+try {
+  app = ng.module('diroop.schema.cache');
+} catch (e) {
+  app = ng.module('diroop.schema.cache', ['diroop.tools']);
+}
+app.run(['drSchemaCache', function(schemaCache) {
+  schemaCache.put('schemaCache:/geo/geo.schema.json',
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "A geographical coordinate",
+    "type": "object",
+    "properties": {
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" }
     }
 }
 );

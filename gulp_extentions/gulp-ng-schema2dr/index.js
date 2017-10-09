@@ -15,7 +15,8 @@
     var TEMPLATES = {
         /**
           deja-vu
-          The following template puts a
+          The following ldash template creates a fragmennt of javascripot that
+          binds a json schema fragment  to its url key in the scgema cache
         **/
         SCHEMA_PUT: "(function(ng) {\n" +
         "try {\n" +
@@ -36,9 +37,12 @@
 module.exports=function(options) {
 
     function schema2js(file, callback) {
+
+        //raise error if supplied a stream from gulp
         if (file.isStream()) {
             return callback(new Error("schemaPackeger: Streaming not supported"));
         }
+
 
         if (file.isBuffer()) {
             file.contents = new Buffer(generateModuleDeclaration(file, options));

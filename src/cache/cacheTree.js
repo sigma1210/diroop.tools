@@ -15,20 +15,29 @@
 
   factory('drCacheTreeService',['$log', '$q','$document','drSchemaCache', _cacheTreeService]);
   function _cacheTreeService($log,$q,$document,schemaCache){
-    var PROTOCOL_NODE_TYPE    ='PROTOCOL_NODE_TYPE',
-        FOLDER_NODE_TYPE      ='FOLDER_NODE_TYPE',
-        SCHEMA_NODE_TYPE      ='SCHEMA_NODE_TYPE',
-        ROOT_NODE_TYPE        ='$TREE_ROOT_NODE',
-        DEFAULT_TREE_ROOT     ={
+
+    //Define const strings use to define the node types
+    var PROTOCOL_NODE_TYPE      ='PROTOCOL_NODE_TYPE',
+        FOLDER_NODE_TYPE        ='FOLDER_NODE_TYPE',
+        SCHEMA_NODE_TYPE        ='SCHEMA_NODE_TYPE',
+        ROOT_NODE_TYPE          ='$TREE_ROOT_NODE',
+
+        NO_PATH_SPECIFIED_EXCEPTION ='no path specified'
+        ADD_PARSED_PATH_EXCEPTION       ='an error occured adding parsed path'
+        DEFAULT_TREE_ROOT       ={
           name:'$cacheroot',
           nodes:[],
           type:ROOT_NODE_TYPE
-        },
-        _treeRoot=ng.copy(DEFAULT_TREE_ROOT),
-        cacheTreeService ={
+        },// defines the Cache root use
+        //define a module level varible to conatin the treeroot
+        _treeRoot               = ng.copy(DEFAULT_TREE_ROOT),
+
+        // define the interfacte for the cacheTreeService
+        cacheTreeService        ={
           addPath:_addPath,
           getTree:_getTree,
         };
+        //return the service
     return cacheTreeService;
 
     /**
@@ -47,6 +56,17 @@
       return $q(function(resolve,reject){
         _treeRoot=ng.copy(DEFAULT_TREE_ROOT);
         var _uris = ng.copy(schemaCache.getUris());
+
+        /**
+          * @ngdoc private function
+          * @name _adduri
+          *
+          * @description
+            A recursive function used to iterate through each schema in the schemaCache and to add it to the tree
+          *
+          * @param {string} uri the key of the schema being added to the tree
+        */
+
         function _addUri(uri){
             if(uri){
               _addPath(uri)
@@ -69,12 +89,23 @@
       });
     }
 
+    /**
+      * @ngdoc function
+      * @name drCacheTreeService.addPath
+      *
+      * @description
+
+
+      * @returns a promise to resolve the contructed tree or reject with an error
+      * decribing the reason for failure
+      *
+    */
 
     function _addPath(path){
       return $q(function(resolve,reject){
         if(!path){
           reject({
-            message:'no path specified'
+            message:NO_PATH_SPECIFIED_EXCEPTION
           });
         }else{
           var _parsed=_parsePath(path);
@@ -84,7 +115,7 @@
             })
             .catch(function(error){
               reject({
-                message:'an error occured add parsed path',
+                message:ADD_PARSED_PATH_EXCEPTION,
                 path:_parsed,
                 error:error
               });
@@ -105,21 +136,21 @@
                 })
                 .catch(function(error){
                   reject({
-                    message:" pn add path error",
+                    message:ADD_PARSED_PATH_EXCEPTION,
                     error:error
                   });
                 });
             })
             .catch(function(error){
               reject({
-                message:"get pn error",
+                message:ADD_PARSED_PATH_EXCEPTION,
                 error:error
 
               });
             });
         }else{
           reject({
-            message:'malformed Parsed Path',
+            message:ADD_PARSED_PATH_EXCEPTION,,
             parsedPath:parsedPath
           });
         }
@@ -282,17 +313,27 @@
         }
       });
     }
+
+
+
     function _parsePath(path){
       if(!path)return null;
+      //why create url parsing routine when the dom provides one by default
+      //create an anchor tag
       var parser = document.createElement('a');
       parser.href =path;
-      var _segments=[];
+      //set its href to the path require
+      var _segments=[];// an array to hold the segnments of the path
+      //split the pathname by the '/' to get an array of the path parts
       var parts = (parser.pathname||'').split('/');
       ng.forEach(parts,function(part){
+        //iterate through the parts
         if(part){
+          //if it exists and is a non empty string push it  to _segements array
           _segments.push(part);
         }
       });
+      // return a javascript object defining the parsed path
       return{
         protocol:(parser.protocol||'').split(':')[0],
         pathName:parser.pathname,
